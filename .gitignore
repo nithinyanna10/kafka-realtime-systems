@@ -39,9 +39,11 @@ package-lock.json
 # Generated files (keep source, ignore outputs)
 *.png
 *.gif
-# But keep all images in docs/
+# But keep all images in docs/ and 01_local_kafka/
 !docs/*.png
 !docs/*.gif
+!01_local_kafka/*.png
+!01_local_kafka/*.gif
 
 # Logs
 *.log
