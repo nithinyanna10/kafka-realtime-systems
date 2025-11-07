@@ -1,0 +1,43 @@
+sequenceDiagram
+    autonumber
+
+    participant App as Producer App
+    participant Prod as Kafka Producer
+    box Kafka Cluster
+      participant Brkr as Broker (Leader)
+      participant Brk2 as Broker (Follower)
+    end
+    participant Cons as Kafka Consumer
+    participant CG as Consumer Group
+    participant AppC as Consumer App
+
+    Note over App,Prod: 1) Message Creation
+    App->>Prod: Create event {key, value}
+
+    Note over Prod,Brkr: 2) Serialize and Partition
+    Prod->>Prod: Serialize (JSON/Avro/Protobuf)
+    Prod->>Brkr: Send batch to TopicA[hash(key) % partitions]
+
+    par Replication
+      Brkr-->>Brk2: Replicate partition data
+    and Ack Path
+      Brkr-->>Prod: acks=all (when replicas in-sync)
+    end
+
+    Note over Cons,CG: 3) Group Assignment & Fetch
+    Cons->>CG: Join group (group.id)
+    CG-->>Cons: Assign partitions
+    Cons->>Brkr: Fetch messages from assigned partition
+    Brkr-->>Cons: Return batch (ordered)
+
+    Note over AppC: 4) Process and Commit
+    Cons->>AppC: Deliver records
+    AppC->>AppC: Business processing
+    alt success
+      Cons->>Brkr: Commit offsets
+    else failure
+      Cons->>Brkr: No commit / send to DLT
+    end
+
+    Note over AppC: 5) Repeat (poll loop)
+
