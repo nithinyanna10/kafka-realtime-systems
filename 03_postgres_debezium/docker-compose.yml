@@ -1,0 +1,85 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-bank
+    environment:
+      POSTGRES_DB: bankdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"  # External port 5433 maps to internal 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper (for Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: debezium-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2182:2181"  # External port 2182 maps to internal 2181
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: debezium-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9093"  # External port 9094 maps to internal 9093
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9094,PLAINTEXT_INTERNAL://kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093,PLAINTEXT_INTERNAL://0.0.0.0:29093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+  # Kafka Connect with Debezium
+  kafka-connect:
+    image: debezium/connect:2.5
+    container_name: debezium-connect
+    depends_on:
+      - kafka
+      - postgres
+    ports:
+      - "8083:8083"  # Kafka Connect REST API
+    environment:
+      BOOTSTRAP_SERVERS: kafka:29093  # Internal Kafka port (unchanged)
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: my_connect_configs
+      OFFSET_STORAGE_TOPIC: my_connect_offsets
+      STATUS_STORAGE_TOPIC: my_connect_statuses
+      # Debezium configuration
+      CONNECT_PRODUCER_INTERCEPTOR_CLASSES: io.debezium.connector.postgresql.PostgresConnectorInterceptor
+    volumes:
+      - ./connect_config.json:/tmp/connect_config.json
+
+  # Kafka UI (to view CDC messages)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: debezium-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8082:8080"  # Different port to avoid conflict with 01_local_kafka (8080) and other services
+    environment:
+      KAFKA_CLUSTERS_0_NAME: debezium-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29093
+
+volumes:
+  postgres_data:
+
