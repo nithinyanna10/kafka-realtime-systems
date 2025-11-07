@@ -39,7 +39,9 @@ package-lock.json
 # Generated files (keep source, ignore outputs)
 *.png
 *.gif
-!docs/architecture.png
+# But keep all images in docs/
+!docs/*.png
+!docs/*.gif
 
 # Logs
 *.log
