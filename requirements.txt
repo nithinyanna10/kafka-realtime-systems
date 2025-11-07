@@ -1,3 +1,7 @@
-# Add Python dependencies here as needed
-# Example: requests==2.32.3
+# Kafka Python Client
+kafka-python>=2.2.15
+
+# Optional: For data visualization
+# matplotlib==3.8.0
+# pandas==2.1.0
 
