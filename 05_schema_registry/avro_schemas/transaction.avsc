@@ -1,0 +1,44 @@
+{
+  "type": "record",
+  "name": "Transaction",
+  "namespace": "com.bank.transactions",
+  "doc": "Bank transaction record with account, amount, and metadata",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "Unique transaction identifier"
+    },
+    {
+      "name": "account",
+      "type": "int",
+      "doc": "Account number"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Transaction amount (positive for deposits, negative for withdrawals)"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Unix timestamp in milliseconds"
+    },
+    {
+      "name": "type",
+      "type": {
+        "type": "enum",
+        "name": "TransactionType",
+        "symbols": ["deposit", "withdrawal", "transfer", "payment"]
+      },
+      "doc": "Type of transaction"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional transaction description"
+    }
+  ]
+}
+

@@ -1,0 +1,56 @@
+{
+  "type": "record",
+  "name": "Transaction",
+  "namespace": "com.bank.transactions",
+  "doc": "Bank transaction record - Version 2 with additional fields",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "Unique transaction identifier"
+    },
+    {
+      "name": "account",
+      "type": "int",
+      "doc": "Account number"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "Transaction amount (positive for deposits, negative for withdrawals)"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "doc": "Unix timestamp in milliseconds"
+    },
+    {
+      "name": "type",
+      "type": {
+        "type": "enum",
+        "name": "TransactionType",
+        "symbols": ["deposit", "withdrawal", "transfer", "payment", "refund"]
+      },
+      "doc": "Type of transaction (added 'refund' in v2)"
+    },
+    {
+      "name": "description",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Optional transaction description"
+    },
+    {
+      "name": "merchant",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Merchant name (new field in v2)"
+    },
+    {
+      "name": "location",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Transaction location (new field in v2)"
+    }
+  ]
+}
+
