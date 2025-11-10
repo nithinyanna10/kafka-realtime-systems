@@ -1,0 +1,35 @@
+services:
+  # Flink JobManager
+  flink-jobmanager:
+    image: flink:1.18-scala_2.12
+    container_name: flink-jobmanager
+    command: jobmanager
+    ports:
+      - "8081:8081"  # Flink Web UI
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 1
+    volumes:
+      - ./flink_job.py:/opt/flink/flink_job.py
+
+  # Flink TaskManager
+  flink-taskmanager:
+    image: flink:1.18-scala_2.12
+    container_name: flink-taskmanager
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 1
+
+volumes:
+  flink_data:
+

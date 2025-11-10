@@ -1,6 +1,9 @@
 # Kafka Python Client
 kafka-python>=2.2.15
 
+# Stream Processing
+apache-flink>=1.18.0
+
 # Optional: For data visualization
 # matplotlib==3.8.0
 # pandas==2.1.0
